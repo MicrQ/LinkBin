@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel, EmailStr
 from dotenv import load_dotenv
 
-from db import get_supabase
+from api.db import get_supabase
 
 load_dotenv()
 

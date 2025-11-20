@@ -1,8 +1,8 @@
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, HttpUrl
-from auth import get_current_user
-from db import get_supabase
+from api.auth import get_current_user
+from api.db import get_supabase
 
 router = APIRouter(prefix="/links", tags=["Links"])
 

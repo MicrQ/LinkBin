@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from links import router as links_router
-from auth import router as auth_router
+from api.links import router as links_router
+from api.auth import router as auth_router
 from dotenv import load_dotenv
 import os
 
