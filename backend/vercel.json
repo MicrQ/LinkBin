@@ -5,8 +5,7 @@
             "use": "@vercel/python"
         },
         {
-            "src": "/(.*)",
-            "dest": "api/main.py"
+            "src": "/(.*)"
         }
     ]
 }
