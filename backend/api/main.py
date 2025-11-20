@@ -10,13 +10,13 @@ load_dotenv()
 app = FastAPI(title="LinkBin API", version="1.0.0")
 
 # CORS
-origins = [
-    os.getenv('FRONTEND_URL', ''),  # local url or vercl url
-]
+# origins = [
+#     os.getenv('FRONTEND_URL', ''),  # local url or vercl url
+# ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
