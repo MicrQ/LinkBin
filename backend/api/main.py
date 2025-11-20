@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from links import router as links_router
+from auth import router as auth_router
 from dotenv import load_dotenv
 import os
 
@@ -23,6 +24,7 @@ app.add_middleware(
 
 # Routes
 app.include_router(links_router)
+app.include_router(auth_router)
 
 
 @app.get("/", tags=["Health"])

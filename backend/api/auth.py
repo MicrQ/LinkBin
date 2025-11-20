@@ -1,8 +1,11 @@
 
 import os
 import jwt
-from fastapi import Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from pydantic import BaseModel, EmailStr
 from dotenv import load_dotenv
+
+from db import get_supabase
 
 load_dotenv()
 
@@ -10,6 +13,14 @@ SUPABASE_JWT_SECRET: str = os.getenv("SUPABASE_JWT_SECRET", "")
 
 if not SUPABASE_JWT_SECRET:
     raise RuntimeError("Missing SUPABASE_JWT_SECRET in environment")
+
+
+router = APIRouter(prefix="/auth", tags=["Auth"])
+
+
+class SignupIn(BaseModel):
+    email: EmailStr
+    password: str
 
 
 def extract_token(request: Request) -> str:
@@ -32,7 +43,8 @@ def decode_supabase_token(token: str) -> str:
         decoded = jwt.decode(
             token,
             SUPABASE_JWT_SECRET,
-            algorithms=["HS256"]
+            algorithms=["HS256"],
+            options={"verify_aud": False},
         )
         user_id = decoded.get("sub")
 
@@ -53,3 +65,45 @@ def get_current_user(request: Request) -> str:
 
     token = extract_token(request)
     return decode_supabase_token(token)
+
+
+@router.post("/signup", status_code=status.HTTP_201_CREATED)
+def signup(payload: SignupIn):
+    """ Create a new user using the Supabase auth API (server-side) """
+    supabase = get_supabase()
+
+    try:
+        result = supabase.auth.sign_up(
+            {"email": payload.email, "password": payload.password}
+        )
+    except Exception:
+        try:
+            result = supabase.auth.admin.create_user(
+                {"email": payload.email, "password": payload.password}
+            )
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to create user: {str(e)}"
+            )
+
+    if isinstance(result, dict):  # supabase response may vary
+        if result.get("error"):
+            err = result["error"]
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=err,
+            )
+        return result.get("data") or result
+
+    # If result is a tuple-like (data, error)
+    if hasattr(result, "get") is False and isinstance(result, tuple):
+        data, error = result if len(result) == 2 else (result, None)
+        if error:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=str(error),
+            )
+        return data
+
+    return result
